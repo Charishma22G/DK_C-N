@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK C&N - Carbon and Nitrogen Mineralization Model</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-window">
+        <div class="title-bar">DK C&N</div>
+        
+        <div class="header-section">
+            <div class="dk-title">DK C&N</div>
+            <div class="dk-subtitle">for simulation of carbon and nitrogen mineralization</div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab(0)">Input setting</div>
+                <div class="tab" onclick="switchTab(1)" id="tab-output">Output: Numerical</div>
+                <div class="tab" onclick="switchTab(2)" id="tab-graph">Output: Graphic</div>
+            </div>
+        </div>
+
+        <div class="tab-content active" id="tab-0">
+            <div class="input-layout">
+                <div class="left-column">
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="simType" value="C" id="c-only" checked onchange="updateSimulationType()">
+                            <label for="c-only">C only</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="simType" value="CN" id="c-n" onchange="updateSimulationType()">
+                            <label for="c-n">C & N</label>
+                        </div>
+                    </div>
+
+                    <div class="weather-section">
+                        <div class="weather-file-row">
+                            <button class="weather-button" onclick="selectWeatherFile()">Weather file...</button>
+                            <div class="weather-info" id="weather-filename">No file selected</div>
+                            <div class="weather-info" id="weather-dates"></div>
+                        </div>
+                        <div class="weather-file-row">
+                            <div style="width: 120px;"></div>
+                            <div class="weather-info" id="weather-type"></div>
+                        </div>
+                        <input type="file" id="weather-file-input" accept=".wth,.txt" style="display: none;" onchange="loadWeatherFile()">
+                    </div>
+
+                    <div class="substrate-events">
+                        <h3 style="position: relative; top: -25px; background: #f0f0f0; padding: 0 5px; width: fit-content;">Substrate input events</h3>
+                        
+                        <div class="input-method-selection">
+                            <div class="radio-item">
+                                <input type="radio" name="inputMethod" value="panel" id="set-panel" checked onchange="updateInputMethod()">
+                                <label for="set-panel">Set on this panel</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="inputMethod" value="excel" id="set-excel" onchange="updateInputMethod()">
+                                <label for="set-excel">Set in Excel file</label>
+                            </div>
+                            <div class="excel-buttons" id="excel-buttons" style="display: none;">
+                                <button class="small-button" onclick="selectExcelFile()">Select file</button>
+                                <button class="small-button" onclick="openExcelFile()">Open file</button>
+                                <button class="small-button" onclick="createExcelFile()">Create file</button>
+                            </div>
+                            <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display: none;" onchange="loadExcelFile()">
+                            <div class="excel-file-info" id="excel-file-info" style="display: none; margin-top: 10px; padding: 5px; border: 1px solid #ccc; background: #f9f9f9; font-size: 11px;"></div>
+                        </div>
+                        
+                        <table class="substrate-grid" id="substrate-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">Event</th>
+                                    <th style="width: 120px;">Date of incorporation</th>
+                                    <th style="width: 120px;">Substrate type</th>
+                                    <th style="width: 80px;">C Mg/ha</th>
+                                    <th style="width: 80px;" class="cn-only">C:N ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="substrate-tbody">
+                            </tbody>
+                        </table>
+                        
+                        <div class="carbon-note">
+                            *Carbon content of nonlegume crop residues is 40-45%.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="time-frame-section">
+                        <h3>Simulation time frame</h3>
+                        <div class="form-row">
+                            <label>Start</label>
+                            <input type="date" class="date-picker" id="start-date">
+                        </div>
+                        <div class="form-row">
+                            <label>End</label>
+                            <input type="date" class="date-picker" id="end-date">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Soil properties</h3>
+                        <div class="form-row">
+                            <label>Soil C content, g/kg</label>
+                            <input type="number" id="soil-c" step="0.1" min="0" value="10" onchange="calculateSoilC()">
+                        </div>
+                        <div class="form-row">
+                            <label>Soil bulk density, g/cm³</label>
+                            <input type="number" id="bulk-density" step="0.01" min="0" value="1.3" onchange="calculateSoilC()">
+                        </div>
+                        <div class="form-row">
+                            <label>Soil depth to simulate, cm</label>
+                            <input type="number" id="depth" min="1" max="30" value="20" onchange="calculateSoilC()">
+                        </div>
+                        <div class="form-row">
+                            <label>Soil C, Mg/ha</label>
+                            <div id="calculated-soil-c" style="border: 2px inset #d0d0d0; padding: 3px 5px; background: #e0e0e0; width: 63px; text-align: center;">0</div>
+                        </div>
+                        <div class="form-row cn-only">
+                            <label>Initial soil Nmin, kg/ha</label>
+                            <input type="number" id="initial-nmin" step="0.1" min="0" value="50">
+                        </div>
+                        <div class="form-row">
+                            <label>Soil texture</label>
+                            <select id="soil-texture">
+                                <option value="Sand">Sand</option>
+                                <option value="Loam">Loam</option>
+                                <option value="Clay">Clay</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>Tillage</label>
+                            <select id="tillage">
+                                <option value="Conventional">Conventional</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="run-button" id="run-btn" onclick="runSimulation()">Run...</button>
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-1">
+            <div class="output-controls" id="output-controls" style="display: none;">
+                <h4>Output time step</h4>
+                <div class="output-controls-row">
+                    <div class="radio-item">
+                        <input type="radio" name="outputStep" value="daily" id="daily-output" checked>
+                        <label for="daily-output">Daily</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" name="outputStep" value="monthly" id="monthly-output">
+                        <label for="monthly-output">Monthly</label>
+                    </div>
+                </div>
+            </div>
+
+            <textarea class="results-memo" id="results-memo" readonly></textarea>
+            <button class="excel-button" onclick="openInExcel()">Open result in Excel</button>
+        </div>
+
+        <div class="tab-content" id="tab-2">
+            <div class="chart-container">
+                <canvas id="chart-canvas"></canvas>
+                
+                <div class="chart-controls-container">
+                    <div class="chart-checkboxes-panel">
+                        <div class="checkbox-column">
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-som-c" onchange="updateChart()">
+                                <label for="cb-som-c">SOM-C</label>
+                            </div>
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-res-c" checked onchange="updateChart()">
+                                <label for="cb-res-c">Substrate residual C</label>
+                            </div>
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-total-c" onchange="updateChart()">
+                                <label for="cb-total-c">Total organic C</label>
+                            </div>
+                        </div>
+                        <div class="checkbox-column cn-only">
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-accum-n" onchange="updateChart()">
+                                <label for="cb-accum-n">Accum. N mineralization</label>
+                            </div>
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-total-n" onchange="updateChart()">
+                                <label for="cb-total-n">Total soil mineral N</label>
+                            </div>
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-soil-n" onchange="updateChart()">
+                                <label for="cb-soil-n">Total soil N</label>
+                            </div>
+                        </div>
+                        <div class="checkbox-column cn-only">
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-cn-res" onchange="updateChart()">
+                                <label for="cb-cn-res">C:N ratio of residues</label>
+                            </div>
+                            <div class="chart-checkbox">
+                                <input type="checkbox" id="cb-cn-som" onchange="updateChart()">
+                                <label for="cb-cn-som">C:N ratio of SOM</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-right-controls">
+                        <button class="das-date-toggle" id="das-date-toggle" onclick="toggleXAxis()">DAS / Date on X</button>
+                        
+                        <div class="chart-output-time-step">
+                            <div class="time-step-title">Output time step</div>
+                            <div class="time-step-options">
+                                <div class="radio-item">
+                                    <input type="radio" name="chartOutputStep" value="daily" id="chart-daily-output" checked onchange="updateChartTimeStep()">
+                                    <label for="chart-daily-output">Daily</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="chartOutputStep" value="monthly" id="chart-monthly-output" onchange="updateChartTimeStep()">
+                                    <label for="chart-monthly-output">Monthly</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-dialog" id="error-dialog">
+        <div class="dialog-title">Error</div>
+        <div id="error-message"></div>
+        <div class="dialog-buttons">
+            <button class="dialog-button" onclick="closeErrorDialog()">OK</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
