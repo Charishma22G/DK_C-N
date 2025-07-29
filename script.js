@@ -1041,35 +1041,47 @@ function displayResults() {
         if (isCN) {
             output += 'Simulated C and N mineralization dynamics\n';
             output += 'C variables in Mg/ha; N variables in kg/ha; DAS: days after start.\n\n';
-            output += 'Date\tDAS\tSOM-C\tres-C\tttl-C\tnet-Nm\tttl-Nm\tttl-N\tres-C:N\tSOM-C:N\n';
+            // Fixed width columns with proper spacing
+            output += 'Date'.padEnd(10) + 'DAS'.padEnd(6) + 'SOM-C'.padEnd(12) + 'res-C'.padEnd(12) + 'ttl-C'.padEnd(12) + 'net-Nm'.padEnd(8) + 'ttl-Nm'.padEnd(8) + 'ttl-N'.padEnd(8) + 'res-C:N'.padEnd(8) + 'SOM-C:N\n';
         } else {
             output += 'Simulated C mineralization dynamics\n';
             output += 'C variables in Mg/ha, DAS: days after start.\n\n';
-            output += 'Date\tDAS\tSOM-C\tres-C\tttl-C\n';
+            // Fixed width columns with proper spacing
+            output += 'Date'.padEnd(10) + 'DAS'.padEnd(6) + 'SOM-C'.padEnd(12) + 'res-C'.padEnd(12) + 'ttl-C\n';
         }
         
         simulationResults.forEach((result, index) => {
             if (index % 1 === 0) {
                 const dateStr = formatDateForDisplay(result.date);
                 
-                output += `${dateStr}\t${result.DAS}\t${result.SOM_C.toFixed(6)}\t${result.substrate_C.toFixed(6)}\t${result.total_C.toFixed(6)}`;
+                let line = dateStr.padEnd(10) + 
+                          result.DAS.toString().padEnd(6) + 
+                          result.SOM_C.toFixed(6).padEnd(12) + 
+                          result.substrate_C.toFixed(6).padEnd(12) + 
+                          result.total_C.toFixed(6).padEnd(12);
                 
                 if (isCN) {
-                    output += `\t${result.net_Nmin?.toFixed(1) || '0.0'}\t${result.total_Nmin?.toFixed(1) || '0.0'}\t${Math.round(result.total_N) || '0'}\t${result.CN_ratio_res?.toFixed(1) || '0.0'}\t${result.CN_ratio_SOM?.toFixed(1) || '10.0'}`;
+                    line += (result.net_Nmin?.toFixed(1) || '0.0').padEnd(8) + 
+                           (result.total_Nmin?.toFixed(1) || '0.0').padEnd(8) + 
+                           (Math.round(result.total_N) || '0').toString().padEnd(8) + 
+                           (result.CN_ratio_res?.toFixed(1) || '0.0').padEnd(8) + 
+                           (result.CN_ratio_SOM?.toFixed(1) || '10.0');
                 }
                 
-                output += '\t\n';
+                output += line + '\n';
             }
         });
     } else {
         if (isCN) {
             output += 'Simulated C and N mineralization dynamics.\n';
             output += 'C variables in Mg/ha; N variables in kg/ha; MAS: months after start.\n\n';
-            output += 'Date\tMAS\tSOM-C\tres-C\tttl-C\tnet-Nm\tttl-Nm\tttl-N\tres-C:N\tSOM-C:N\n';
+            // Fixed width columns with proper spacing
+            output += 'Date'.padEnd(10) + 'MAS'.padEnd(6) + 'SOM-C'.padEnd(12) + 'res-C'.padEnd(12) + 'ttl-C'.padEnd(12) + 'net-Nm'.padEnd(8) + 'ttl-Nm'.padEnd(8) + 'ttl-N'.padEnd(8) + 'res-C:N'.padEnd(8) + 'SOM-C:N\n';
         } else {
             output += 'Simulated C mineralization dynamics.\n';
             output += 'C variables in Mg/ha, MAS: months after start.\n\n';
-            output += 'Date\tMAS\tSOM-C\tres-C\tttl-C\n';
+            // Fixed width columns with proper spacing
+            output += 'Date'.padEnd(10) + 'MAS'.padEnd(6) + 'SOM-C'.padEnd(12) + 'res-C'.padEnd(12) + 'ttl-C\n';
         }
         
         let lastProcessedMonth = -1;
@@ -1090,13 +1102,21 @@ function displayResults() {
                 const startMonth = simulationResults[0].date.getMonth();
                 const MAS = ((currentYear - startYear) * 12) + (currentMonth - startMonth) + 1;
                 
-                output += `${dateStr}\t${MAS}\t${result.SOM_C.toFixed(6)}\t${result.substrate_C.toFixed(6)}\t${result.total_C.toFixed(6)}`;
+                let line = dateStr.padEnd(10) + 
+                          MAS.toString().padEnd(6) + 
+                          result.SOM_C.toFixed(6).padEnd(12) + 
+                          result.substrate_C.toFixed(6).padEnd(12) + 
+                          result.total_C.toFixed(6).padEnd(12);
                 
                 if (isCN) {
-                    output += `\t${result.net_Nmin?.toFixed(1) || '0.0'}\t${result.total_Nmin?.toFixed(1) || '0.0'}\t${Math.round(result.total_N) || '0'}\t${result.CN_ratio_res?.toFixed(1) || '0.0'}\t${result.CN_ratio_SOM?.toFixed(1) || '10.0'}`;
+                    line += (result.net_Nmin?.toFixed(1) || '0.0').padEnd(8) + 
+                           (result.total_Nmin?.toFixed(1) || '0.0').padEnd(8) + 
+                           (Math.round(result.total_N) || '0').toString().padEnd(8) + 
+                           (result.CN_ratio_res?.toFixed(1) || '0.0').padEnd(8) + 
+                           (result.CN_ratio_SOM?.toFixed(1) || '10.0');
                 }
                 
-                output += '\t\n';
+                output += line + '\n';
                 
                 lastProcessedMonth = currentMonth;
                 lastProcessedYear = currentYear;
