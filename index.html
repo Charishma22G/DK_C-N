@@ -141,19 +141,26 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="run-controls">
+                        <button class="run-button" id="run-btn" onclick="runSimulation()">Run...</button>
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <button class="run-button" id="run-btn" onclick="runSimulation()">Run...</button>
-            <div class="progress-bar" id="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
+
         </div>
 
         <div class="tab-content" id="tab-1">
-            <div class="output-controls" id="output-controls" style="display: none;">
-                <h4>Output time step</h4>
-                <div class="output-controls-row">
+            <textarea class="results-memo" id="results-memo" readonly></textarea>
+            <button class="excel-button" onclick="openInExcel()">Open result in Excel</button>
+            
+            <div class="output-controls" id="output-controls">
+                <div class="time-step-title">Output time step</div>
+                <div class="time-step-options">
                     <div class="radio-item">
                         <input type="radio" name="outputStep" value="daily" id="daily-output" checked>
                         <label for="daily-output">Daily</label>
@@ -164,9 +171,6 @@
                     </div>
                 </div>
             </div>
-
-            <textarea class="results-memo" id="results-memo" readonly></textarea>
-            <button class="excel-button" onclick="openInExcel()">Open result in Excel</button>
         </div>
 
         <div class="tab-content" id="tab-2">
