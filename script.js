@@ -343,12 +343,6 @@ function switchTab(tabIndex) {
     document.getElementById(`tab-${tabIndex}`).classList.add('active');
     document.querySelectorAll('.tab')[tabIndex].classList.add('active');
     
-    const outputControls = document.getElementById('output-controls');
-    if (tabIndex === 1 && simulationResults) {
-        outputControls.style.display = 'block';
-    } else {
-        outputControls.style.display = 'none';
-    }
 }
 
 function updateSimulationType() {
