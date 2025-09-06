@@ -238,34 +238,92 @@ body {
 }
 
 .substrate-grid {
-    border: 1px solid #808080;
+    border: 2px inset #d0d0d0;
     background: white;
     width: 100%;
     border-collapse: collapse;
+    font-size: 11px;
 }
 
 .substrate-grid th, .substrate-grid td {
     border: 1px solid #c0c0c0;
-    padding: 5px;
+    padding: 3px 2px;
     text-align: center;
     font-size: 11px;
+    height: 22px;
 }
 
 .substrate-grid th {
     background: #e0e0e0;
     font-weight: bold;
+    vertical-align: middle;
+    line-height: 1.1;
 }
 
-.substrate-grid input, .substrate-grid select {
+.substrate-grid .event-cell {
+    background: #e0e0e0;
+    vertical-align: middle;
+    font-weight: bold;
+    position: relative;
+}
+
+.substrate-grid .event-checkbox {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+    vertical-align: middle;
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.substrate-grid .event-number {
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 18px;
+    display: inline-block;
+}
+
+.substrate-grid input[type="date"] {
     width: 100%;
     border: none;
     background: transparent;
     font-size: 11px;
-    padding: 2px;
+    padding: 1px 2px;
+    height: 18px;
+    box-sizing: border-box;
+}
+
+.substrate-grid select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    padding: 0 2px;
+    height: 18px;
+    box-sizing: border-box;
+}
+
+.substrate-grid input[type="number"] {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    padding: 1px 2px;
+    height: 18px;
+    text-align: right;
+    box-sizing: border-box;
 }
 
 .substrate-grid input:focus, .substrate-grid select:focus {
     background: #e0e0ff;
+    outline: 1px solid #0080ff;
+}
+
+.substrate-grid input:disabled, .substrate-grid select:disabled {
+    background: #f0f0f0;
+    color: #808080;
 }
 
 .carbon-note {
