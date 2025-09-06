@@ -74,11 +74,11 @@
                         <table class="substrate-grid" id="substrate-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 30px;">Event</th>
-                                    <th style="width: 120px;">Date of incorporation</th>
+                                    <th style="width: 50px;">Event</th>
+                                    <th style="width: 120px;">Date of<br>incorporation</th>
                                     <th style="width: 120px;">Substrate type</th>
-                                    <th style="width: 80px;">C Mg/ha</th>
-                                    <th style="width: 80px;" class="cn-only">C:N ratio</th>
+                                    <th style="width: 80px;">C<br>Mg/ha</th>
+                                    <th style="width: 80px;" class="cn-only">C:N<br>ratio</th>
                                 </tr>
                             </thead>
                             <tbody id="substrate-tbody">
@@ -111,7 +111,7 @@
                             <input type="number" id="soil-c" step="0.1" min="0" value="10" onchange="calculateSoilC()">
                         </div>
                         <div class="form-row">
-                            <label>Soil bulk density, g/cm³</label>
+                            <label>Soil bulk density, g/cmÃ‚Â³</label>
                             <input type="number" id="bulk-density" step="0.01" min="0" value="1.3" onchange="calculateSoilC()">
                         </div>
                         <div class="form-row">
@@ -130,7 +130,7 @@
                             <label>Soil texture</label>
                             <select id="soil-texture">
                                 <option value="Sand">Sand</option>
-                                <option value="Loam">Loam</option>
+                                <option value="Loam" selected>Loam</option>
                                 <option value="Clay">Clay</option>
                             </select>
                         </div>
@@ -253,3 +253,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+                 
