@@ -1,4 +1,3 @@
-
 let weatherData = null;
 let simulationResults = null;
 let chart = null;
@@ -25,7 +24,6 @@ const modelParams = {
         Clay: { R: 178.0, S: 115.0 }
     }
 };
-
 
 function createSafeDate(dateString) {
     const parts = dateString.split('-');
@@ -88,7 +86,6 @@ function getTempCoef(tmax, tmin) {
     return tempCoeff;
 }
 
-
 function calculateNDynamics(C_dissim, C_assim, cnRatio, cnRatioMicrobe) {
     if (cnRatio <= 0 || cnRatioMicrobe <= 0) return 0;
     
@@ -97,9 +94,8 @@ function calculateNDynamics(C_dissim, C_assim, cnRatio, cnRatioMicrobe) {
     return grossNrelease - microbeNuptake;
 }
 
-
-function adjustS(R, S, timeStep) {
-    const R_new = R * timeStep;  
+function adjustS(R, S, tempCoef) {
+    const R_new = R * tempCoef;  
     const S1 = 0.933 * Math.pow(R, 0.179);
     const S2 = 0.933 * Math.pow(R_new, 0.179);
     
@@ -115,7 +111,6 @@ function adjustS(R, S, timeStep) {
     
     return adjustedS;
 }
-
 
 function getTemperatureCoefficientForDate(date) {
     if (!weatherData || weatherData.length === 0) {
@@ -169,14 +164,12 @@ function getTemperatureCoefficientForDate(date) {
     throw new Error(`No temperature data available for ${formatDateForDisplay(date)}`);
 }
 
-
 async function performSimulation() {
     console.log("=== EXACT PASCAL SIMULATION ===");
     
     const isCN = document.getElementById('c-n').checked;
     const startDateSimul = createSafeDate(document.getElementById('start-date').value);
     const endDateSimul = createSafeDate(document.getElementById('end-date').value);
-    
     
     const substrates = [];
     
@@ -259,10 +252,8 @@ async function performSimulation() {
         };
     }
     
-    const R_SOM = modelParams.R_SOM;
-    const S_SOM = modelParams.S_SOM;
-    const firstMonth_K_SOM = R_SOM * Math.pow(30.0, -S_SOM);
-    let som_k = (1.0 - S_SOM) * firstMonth_K_SOM;
+    const firstMonth_K_SOM = modelParams.R_SOM * Math.pow(30.0, -modelParams.S_SOM);
+    let som_k = (1.0 - modelParams.S_SOM) * firstMonth_K_SOM;
     
     for (let P = 0; P < maxDoses; P++) {
         substrateStates[P].firstMonth_K = substrateStates[P].R * Math.pow(30.0, -substrateStates[P].S);
@@ -280,7 +271,7 @@ async function performSimulation() {
         
         const tempCoef = getTemperatureCoefficientForDate(currentDate);
         
-        grandCNratioSub = 0.0; 
+        grandCNratioSub = 0.0;
         let C_dissim = 0.0;
         let C_assim = 0.0;
         
@@ -292,11 +283,10 @@ async function performSimulation() {
             
             if (timeSOM < 30.0) {
                 YtSOC = oldValueSOC * Math.exp(-firstMonth_K_SOM * tempCoef);
-                som_k = (1.0 - S_SOM) * firstMonth_K_SOM;
+                som_k = (1.0 - modelParams.S_SOM) * firstMonth_K_SOM;
             } else {
                 const small_k1 = som_k;
-                
-                const adj_S = S_SOM; 
+                const adj_S = adjustS(modelParams.R_SOM, modelParams.S_SOM, tempCoef);
                 
                 som_k = small_k1 / Math.pow(oldTimeSOM, -adj_S) * Math.pow(timeSOM, -adj_S);
                 
@@ -316,9 +306,7 @@ async function performSimulation() {
         oldValueSOC = YtSOC;
         
         if (isCN) {
-            let netNreleaseDaily = 0.0;
-            
-            netNreleaseDaily = calculateNDynamics(C_dissim, C_assim, CNratioSOM, CNratioMicrobe);
+            let netNreleaseDaily = calculateNDynamics(C_dissim, C_assim, CNratioSOM, CNratioMicrobe);
             
             totalNetNrelease += netNreleaseDaily;
             organicN_SOM -= netNreleaseDaily;
@@ -345,26 +333,19 @@ async function performSimulation() {
                 substrate.Yt = substrate.amount;
                 substrate.oldValueC = substrate.amount;
                 substrate.applied = true;
-                C_dissim = 0.0; 
-                C_assim = 0.0;  
+                C_dissim = 0.0;
+                C_assim = 0.0;
                 totalSubYt += substrate.amount;
                 
                 if (isCN) {
-                    let netNreleaseDaily = 0.0; 
+                    let netNreleaseDaily = 0.0;
                     substrate.CNratioVari = substrate.cnRatio;
                     const organicN_sub = substrate.Yt / substrate.cnRatio;
                     totalOrganicN += organicN_sub;
-                    totalN = totalSoilNmin + totalOrganicN; 
-                    
-                    const organicN_SOM_current = YtSOC / CNratioSOM;
-                    const substrate_organicN = totalOrganicN - organicN_SOM_current;
-                    if (substrate_organicN > 0.001) {
-                        grandCNratioSub = totalSubYt / substrate_organicN;
-                    }
                 }
                 
-            } else if (substrate.applied) {
-                let stressFree = !isCN; 
+            } else {
+                let stressFree = !isCN;
                 let localCNratioMicrobe = CNratioMicrobe;
                 let localDAratio = DAratio;
                 
@@ -377,7 +358,6 @@ async function performSimulation() {
                         substrate.small_k = (1.0 - substrate.S) * substrate.firstMonth_K;
                     } else {
                         const small_k1 = substrate.small_k;
-                        
                         const adj_S = adjustS(substrate.R, substrate.S, timeStep);
                         
                         substrate.small_k = small_k1 * Math.pow(substrate.oldTimeDose, adj_S) * 
@@ -411,13 +391,11 @@ async function performSimulation() {
                                 stressFree = true;
                             }
                         }
-                    } else {
-                        stressFree = true;
                     }
                 } while (!stressFree);
                 
                 substrate.oldTimeDose = substrate.timeDose;
-                totalSubYt -= C_dissim; 
+                totalSubYt -= C_dissim;
                 
                 if (isCN) {
                     let netNrelease_sub = calculateNDynamics(C_dissim, C_assim, 
@@ -431,12 +409,6 @@ async function performSimulation() {
                     
                     totalOrganicN -= netNrelease_sub;
                     totalN = totalOrganicN + totalSoilNmin;
-                    
-                    const organicN_SOM_current = YtSOC / CNratioSOM;
-                    const substrate_organicN = totalOrganicN - organicN_SOM_current;
-                    if (substrate_organicN > 0.001) {
-                        grandCNratioSub = totalSubYt / substrate_organicN;
-                    }
                 }
                 
                 substrate.oldValueC = substrate.Yt;
@@ -1422,8 +1394,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
 });
 
-window.runSimulation = runSimulation;
-window.selectWeatherFile = selectWeatherFile;
 window.runSimulation = runSimulation;
 window.selectWeatherFile = selectWeatherFile;
 window.loadWeatherFile = loadWeatherFile;
