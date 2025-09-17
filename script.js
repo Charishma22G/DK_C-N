@@ -157,7 +157,6 @@ function getTemperatureCoefficientForDate(date) {
     }
     
     if (weatherData.length > 0) {
-        console.warn(`Using fallback weather data for ${formatDateForDisplay(date)}`);
         return getTempCoef(weatherData[0].tmax, weatherData[0].tmin);
     }
     
@@ -165,7 +164,6 @@ function getTemperatureCoefficientForDate(date) {
 }
 
 async function performSimulation() {
-    console.log("=== EXACT PASCAL SIMULATION ===");
     
     const isCN = document.getElementById('c-n').checked;
     const startDateSimul = createSafeDate(document.getElementById('start-date').value);
@@ -434,6 +432,11 @@ async function performSimulation() {
             grandCNratioSub = totalSubYt / totalSubstrateOrganicN;
         }
         
+        let displayTotalN = totalN;
+        if (DAS === 1 && isCN) {
+            displayTotalN = totalOrganicN + totalSoilNmin;
+        }
+        
         results.push({
             date: new Date(currentDate),
             DAS: DAS,
@@ -442,7 +445,7 @@ async function performSimulation() {
             total_C: (YtSOC + totalSubYt) / 1000.0,
             net_Nmin: isCN ? totalNetNrelease : null,
             total_Nmin: isCN ? totalSoilNmin : null,
-            total_N: isCN ? Math.round(totalN) : null,
+            total_N: isCN ? Math.round(displayTotalN) : null,
             CN_ratio_res: isCN && grandCNratioSub > 0 ? grandCNratioSub : null,
             CN_ratio_SOM: isCN ? CNratioSOM : null
         });
@@ -935,6 +938,8 @@ function updateChart() {
     const rescChecked = document.getElementById('cb-res-c')?.checked;
     const totalcChecked = document.getElementById('cb-total-c')?.checked;
     
+    const hasCarbonData = somcChecked || rescChecked || totalcChecked;
+    
     if (somcChecked) {
         datasets.push({
             label: 'SOM-C',
@@ -977,14 +982,14 @@ function updateChart() {
         });
     }
     
-    let hasNData = false;
+    let hasNitrogenData = false;
     if (isCN) {
         const accumNChecked = document.getElementById('cb-accum-n')?.checked;
         const totalNMinChecked = document.getElementById('cb-total-n')?.checked;
         const soilNChecked = document.getElementById('cb-soil-n')?.checked;
         
         if (accumNChecked) {
-            hasNData = true;
+            hasNitrogenData = true;
             datasets.push({
                 label: 'Net N mineralization',
                 data: sampledResults.map(r => r.net_Nmin || 0),
@@ -999,7 +1004,7 @@ function updateChart() {
         }
         
         if (totalNMinChecked) {
-            hasNData = true;
+            hasNitrogenData = true;
             datasets.push({
                 label: 'Total mineral N',
                 data: sampledResults.map(r => r.total_Nmin || 0),
@@ -1014,7 +1019,7 @@ function updateChart() {
         }
         
         if (soilNChecked) {
-            hasNData = true;
+            hasNitrogenData = true;
             datasets.push({
                 label: 'Total soil N',
                 data: sampledResults.map(r => r.total_N || 0),
@@ -1030,6 +1035,7 @@ function updateChart() {
         
         const cnResChecked = document.getElementById('cb-cn-res')?.checked;
         const cnSomChecked = document.getElementById('cb-cn-som')?.checked;
+        const hasCNRatioData = cnResChecked || cnSomChecked;
         
         if (cnResChecked) {
             datasets.push({
@@ -1037,7 +1043,7 @@ function updateChart() {
                 data: sampledResults.map(r => r.CN_ratio_res || 0),
                 borderColor: colors.cnRes,
                 backgroundColor: 'transparent',
-                yAxisID: hasNData ? 'y2' : 'y1',
+                yAxisID: 'y1',
                 fill: false,
                 tension: 0.1,
                 borderWidth: 2,
@@ -1051,12 +1057,16 @@ function updateChart() {
                 data: sampledResults.map(r => r.CN_ratio_SOM || 10),
                 borderColor: colors.cnSom,
                 backgroundColor: 'transparent',
-                yAxisID: hasNData ? 'y2' : 'y1',
+                yAxisID: 'y1',
                 fill: false,
                 tension: 0.1,
                 borderWidth: 2,
                 pointRadius: 0
             });
+        }
+        
+        if (hasCNRatioData) {
+            hasNitrogenData = true;
         }
     }
     
@@ -1070,8 +1080,11 @@ function updateChart() {
             },
             grid: { display: true, color: '#CCCCCC' },
             ticks: { color: '#000', font: { size: 12 } }
-        },
-        y: {
+        }
+    };
+    
+    if (hasCarbonData) {
+        scales.y = {
             type: 'linear',
             display: true,
             position: 'left',
@@ -1083,10 +1096,10 @@ function updateChart() {
             },
             grid: { display: true, color: '#CCCCCC' },
             ticks: { color: '#000', font: { size: 12 } }
-        }
-    };
+        };
+    }
     
-    if (hasNData) {
+    if (hasNitrogenData) {
         scales.y1 = {
             type: 'linear',
             display: true,
@@ -1097,18 +1110,8 @@ function updateChart() {
                 font: { size: 14, weight: 'bold' },
                 color: '#000'
             },
-            grid: { display: false },
+            grid: { display: hasCarbonData ? false : true, color: '#CCCCCC' },
             ticks: { color: '#000', font: { size: 12 } }
-        };
-    }
-    
-    if ((document.getElementById('cb-cn-res')?.checked || document.getElementById('cb-cn-som')?.checked) && hasNData) {
-        scales.y2 = {
-            type: 'linear',
-            display: false,
-            position: 'right',
-            min: 0,
-            grid: { display: false }
         };
     }
     
